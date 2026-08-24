@@ -1,0 +1,103 @@
+/* Sitio público generado. La marca llega por css/tema.css (horneada en el build). */
+:root {
+  --msl-primario: var(--primario, #6d28d9);
+  --msl-fondo: var(--fondo, #fafafa);
+  --msl-texto: var(--texto, #1f2937);
+  --msl-radio: var(--radio, 12px);
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: var(--fuente, system-ui, sans-serif);
+  background: var(--msl-fondo);
+  color: var(--msl-texto);
+}
+
+/* Barra superior fija. */
+#topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: .6rem 1rem;
+  background: var(--msl-primario);
+  color: #fff;
+}
+#topbar a { color: #fff; text-decoration: none; margin-right: .8rem; }
+#topbar nav { flex: 1; }
+#marca { font-size: 1.1rem; font-weight: 700; }
+
+main { max-width: 1100px; margin: 0 auto; padding: 1rem; }
+
+/* Pie discreto con firma Muéstralo. */
+#pie {
+  text-align: center;
+  padding: 2rem 1rem;
+  opacity: .6;
+  font-size: .85rem;
+}
+#pie a { color: inherit; }
+
+/* Hero del home. */
+.hero { text-align: center; padding: 4rem 1rem; }
+.hero h1 { font-size: 2.4rem; margin-bottom: .4rem; }
+.hero p { opacity: .8; margin-bottom: 1.4rem; }
+
+/* Buscador del catálogo. */
+#buscador { display: flex; gap: .5rem; margin-bottom: 1rem; }
+#buscador input {
+  flex: 1;
+  padding: .55rem .8rem;
+  border: 1px solid #d1d5db;
+  border-radius: var(--msl-radio);
+}
+
+/* Grid y tarjetas horneadas de producto. */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 1rem;
+}
+.tarjeta-producto {
+  border: 1px solid #e5e7eb;
+  border-radius: var(--msl-radio);
+  padding: .8rem;
+  display: grid;
+  gap: .4rem;
+  background: #fff;
+}
+.tarjeta-enlace { color: inherit; text-decoration: none; display: grid; gap: .3rem; }
+.tarjeta-enlace img { width: 100%; border-radius: var(--msl-radio); }
+.tarjeta-enlace h2 { font-size: 1rem; margin: 0; }
+.tarjeta-cat { margin: 0; font-size: .8rem; opacity: .6; }
+
+/* Vista de producto individual. */
+.producto { max-width: 640px; margin: 0 auto; }
+.producto img { width: 100%; border-radius: var(--msl-radio); margin-bottom: .6rem; }
+.miga { font-size: .85rem; opacity: .7; margin-bottom: .8rem; }
+.miga a { color: var(--msl-primario); }
+.msl-precio { font-size: 1.4rem; color: var(--msl-primario); display: block; margin: .6rem 0; }
+.stock { font-size: .85rem; opacity: .7; }
+#personalizar { display: grid; gap: .8rem; }
+#personalizar label { display: grid; gap: .3rem; font-weight: 600; }
+#personalizar select, #personalizar input[type="number"] {
+  padding: .5rem;
+  border: 1px solid #d1d5db;
+  border-radius: var(--msl-radio);
+}
+
+/* Diálogo de sesión. */
+dialog {
+  border: none;
+  border-radius: var(--msl-radio);
+  padding: 1.4rem;
+  box-shadow: 0 12px 40px #0004;
+}
+dialog::backdrop { background: #0006; }
+
+.msl-error { color: #b91c1c; padding: 1rem; }
+ul { padding-left: 1.2rem; }
+li { margin-bottom: .4rem; }

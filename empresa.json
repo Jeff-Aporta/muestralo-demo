@@ -1,0 +1,7 @@
+{
+  "app": "demo",
+  "nombre": "Tienda Demo",
+  "api": "https://muestralo-api.jeffaporta.workers.dev",
+  "dominio": "https://jeff-aporta.github.io/muestralo-demo",
+  "idioma": "es"
+}
