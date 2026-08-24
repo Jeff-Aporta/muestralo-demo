@@ -119,7 +119,7 @@ export async function vistaCarrito(MslCliente) {
 export async function vistaPedidos(MslCliente) {
   if (!exigirSesion(MslCliente)) return;
   const lista = document.getElementById("lista-pedidos");
-  const pedidos = await MslCliente.pedidos();
+  const { results: pedidos } = await MslCliente.pedidos();
   lista.innerHTML = pedidos.length
     ? pedidos.map(() => `<msl-pedido-card></msl-pedido-card>`).join("")
     : `<p>Sin pedidos todavía.</p>`;
