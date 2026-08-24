@@ -51,36 +51,97 @@ export function conectarAgregables(MslCliente) {
   });
 }
 
-// Buscador del catálogo: filtra en cliente sobre las tarjetas ya horneadas.
+// Buscador y filtros del catálogo: trabajan sobre el índice ya horneado.
+// Nada de pedir de nuevo a la API: el HTML ya tiene todas las referencias.
 export function conectarBuscador() {
   const form = document.getElementById("buscador");
   if (!form) return;
-  form.addEventListener("submit", (e) => e.preventDefault());
-  form.q.addEventListener("input", () => {
+  const secciones = [...document.querySelectorAll("section.seccion")];
+  const aviso = document.getElementById("sin-resultados");
+  let depto = "";
+
+  const aplicar = () => {
     const q = form.q.value.trim().toLowerCase();
-    document.querySelectorAll(".tarjeta-producto").forEach((t) => {
-      t.hidden = q && !t.textContent.toLowerCase().includes(q);
-    });
+    let visibles = 0;
+    for (const sec of secciones) {
+      const enDepto = !depto || sec.id === depto;
+      let n = 0;
+      for (const li of sec.querySelectorAll("li")) {
+        const coincide = enDepto && (!q || li.textContent.toLowerCase().includes(q));
+        li.hidden = !coincide;
+        if (coincide) n++;
+      }
+      sec.hidden = n === 0;
+      const cuenta = sec.querySelector(".indice-titulo span");
+      if (cuenta && n) cuenta.textContent = `${n} ${n === 1 ? "referencia" : "referencias"}`;
+      visibles += n;
+    }
+    if (aviso) aviso.hidden = visibles > 0;
+  };
+
+  form.addEventListener("submit", (e) => e.preventDefault());
+  form.q.addEventListener("input", aplicar);
+  document.getElementById("filtros-depto")?.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-depto]");
+    if (!btn) return;
+    depto = btn.dataset.depto;
+    for (const b of document.querySelectorAll("[data-depto]")) {
+      b.setAttribute("aria-pressed", String(b === btn));
+    }
+    aplicar();
+    if (depto) document.getElementById(depto)?.scrollIntoView({ behavior: "smooth", block: "start" });
   });
+  // El hash de la URL entra ya filtrado (enlaces del home y del pie).
+  if (location.hash) {
+    const id = location.hash.slice(1);
+    document.querySelector(`[data-depto="${CSS.escape(id)}"]`)?.click();
+  }
 }
 
 // ------------------------------------------------------------- producto
 
-// Form de personalización horneado: variaciones + adicionales + cantidad.
-export function conectarPersonalizacion(MslCliente) {
+// Ficha de producto: fichas de opción, adicionales y total en vivo.
+export function conectarPersonalizacion(MslCliente, dinero) {
   const form = document.getElementById("personalizar");
   const art = document.querySelector(".producto");
   if (!form || !art) return;
   const prod = JSON.parse(art.dataset.producto);
+  const totalEl = document.getElementById("total-linea");
+  const aviso = document.getElementById("aviso-producto");
+
+  const leer = () => {
+    const personalizacion = {};
+    for (const g of form.querySelectorAll("fieldset[data-grupo]")) {
+      const clave = g.dataset.grupo;
+      if (clave === "adicionales") continue;
+      const elegido = g.querySelector("input[type=radio]:checked");
+      if (elegido) personalizacion[clave] = elegido.value;
+    }
+    const adic = [...form.querySelectorAll('[name="adicional"]:checked')];
+    if (adic.length) personalizacion.adicionales = adic.map((c) => c.value);
+    const extra = adic.reduce((s, c) => s + Number(c.dataset.precio || 0), 0);
+    const cantidad = Math.max(1, Number(form.cantidad.value) || 1);
+    return { personalizacion, total: (prod.precio + extra) * cantidad, cantidad };
+  };
+
+  // El total se recalcula igual que en el servidor: base + adicionales.
+  const refrescarTotal = () => {
+    if (totalEl && dinero) totalEl.textContent = dinero(leer().total, prod.moneda);
+  };
+  form.addEventListener("change", refrescarTotal);
+  form.addEventListener("input", refrescarTotal);
+  refrescarTotal();
+
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     if (!exigirSesion(MslCliente)) return;
-    const personalizacion = {};
-    for (const sel of form.querySelectorAll("select")) personalizacion[sel.name] = sel.value;
-    const adic = [...form.querySelectorAll('[name="adicional"]:checked')].map((c) => c.value);
-    if (adic.length) personalizacion.adicionales = adic;
-    await MslCliente.agregar(prod.id, Number(form.cantidad.value) || 1, personalizacion);
-    location.href = `${window.MSL.dominio}/carrito/`;
+    const { personalizacion, cantidad } = leer();
+    try {
+      await MslCliente.agregar(prod.id, cantidad, personalizacion);
+      location.href = `${window.MSL.dominio}/carrito/`;
+    } catch (err) {
+      if (aviso) aviso.innerHTML = `<span class="msl-error">${err.message}</span>`;
+    }
   });
 }
 

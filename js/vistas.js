@@ -9,18 +9,22 @@ window.MSL_CDN = KIT;
 
 const { cargarKit } = await import(`${KIT}/msl-loader.js`);
 const { MslCliente } = await import(`${KIT}/msl-cliente.js`);
-const { dinero } = await import(`${KIT}/msl-tema.js`);
+const { dinero, montarControlesTema } = await import(`${KIT}/msl-tema.js`);
 const R = await import("./runtime.js");
 
 await cargarKit();
 MslCliente.configurar({ base: window.MSL.api, app: window.MSL.app });
+
+// Controles nativos del kit: paleta de marca y claro/oscuro.
+// El tema ya se aplicó antes del primer pintado (script del <head>).
+montarControlesTema(document.getElementById("controles-tema"), window.MSL.paletas || []);
 
 const vista = document.body.dataset.vista;
 R.conectarShell(MslCliente);
 
 if (vista === "inicio" || vista === "catalogo") R.conectarAgregables(MslCliente);
 if (vista === "catalogo") R.conectarBuscador();
-if (vista === "producto") R.conectarPersonalizacion(MslCliente);
+if (vista === "producto") R.conectarPersonalizacion(MslCliente, dinero);
 if (vista === "carrito") R.vistaCarrito(MslCliente);
 if (vista === "pedidos") R.vistaPedidos(MslCliente);
 if (vista === "pedido") R.vistaPedido(MslCliente, dinero);

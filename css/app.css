@@ -1,103 +1,557 @@
-/* Sitio público generado. La marca llega por css/tema.css (horneada en el build). */
+/* Sitio público de Muéstralo — hoja base del molde.
+ *
+ * Regla dura: aquí NO se escribe ni un color literal. Todo sale de los tokens
+ * --is-* de is-webcomponents, que la paleta del tenant repinta por completo
+ * (GET /tema/{app}/{paleta}.css). Cambiar de marca no toca este archivo.
+ *
+ * Forma: índice impreso. Cada departamento es una lista de renglones
+ * "nombre · línea de puntos · precio", como una carta o un catálogo de papel.
+ */
+
 :root {
-  --msl-primario: var(--primario, #6d28d9);
-  --msl-fondo: var(--fondo, #fafafa);
-  --msl-texto: var(--texto, #1f2937);
-  --msl-radio: var(--radio, 12px);
+  --msl-medida: 68ch;              /* medida de lectura cómoda */
+  --msl-borde: var(--is-border);
+  --msl-paso: clamp(1rem, 2.5vw, 2rem);
+  --msl-canal: min(1180px, 100% - 2 * var(--msl-paso));
+  --msl-display: var(--msl-font-display, var(--is-sans, system-ui, sans-serif));
+  --msl-cuerpo: var(--is-sans, system-ui, sans-serif);
 }
 
 * { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
 body {
   margin: 0;
-  font-family: var(--fuente, system-ui, sans-serif);
-  background: var(--msl-fondo);
-  color: var(--msl-texto);
+  background: var(--is-bg);
+  color: var(--is-text);
+  font-family: var(--msl-cuerpo);
+  font-size: clamp(1rem, 0.96rem + 0.2vw, 1.075rem);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Barra superior fija. */
+img { max-width: 100%; display: block; }
+
+a { color: inherit; text-decoration: none; }
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--is-focus);
+  outline-offset: 3px;
+  border-radius: var(--is-radius-sm);
+}
+
+h1, h2, h3 {
+  font-family: var(--msl-display);
+  font-weight: 640;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  text-wrap: balance;
+  margin: 0;
+}
+
+p { margin: 0 0 1em; max-width: var(--msl-medida); }
+
+/* ------------------------------------------------------------- cabecera */
+
 #topbar {
   position: sticky;
   top: 0;
-  z-index: 10;
+  z-index: 20;
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: .6rem 1rem;
-  background: var(--msl-primario);
-  color: #fff;
+  gap: clamp(0.75rem, 2vw, 1.5rem);
+  width: var(--msl-canal);
+  margin-inline: auto;
+  padding-block: 0.7rem;
+  background: color-mix(in srgb, var(--is-bg) 88%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--is-border-soft);
 }
-#topbar a { color: #fff; text-decoration: none; margin-right: .8rem; }
-#topbar nav { flex: 1; }
-#marca { font-size: 1.1rem; font-weight: 700; }
 
-main { max-width: 1100px; margin: 0 auto; padding: 1rem; }
-
-/* Pie discreto con firma Muéstralo. */
-#pie {
-  text-align: center;
-  padding: 2rem 1rem;
-  opacity: .6;
-  font-size: .85rem;
+#marca {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-family: var(--msl-display);
+  font-weight: 700;
+  font-size: 1.15rem;
+  letter-spacing: -0.03em;
 }
-#pie a { color: inherit; }
 
-/* Hero del home. */
-.hero { text-align: center; padding: 4rem 1rem; }
-.hero h1 { font-size: 2.4rem; margin-bottom: .4rem; }
-.hero p { opacity: .8; margin-bottom: 1.4rem; }
+/* El chip del logo usa los tokens de logo de la paleta: marca real, no adorno. */
+.marca-chip {
+  display: grid;
+  place-items: center;
+  inline-size: 2.1em;
+  block-size: 2.1em;
+  border-radius: var(--is-radius);
+  background: var(--is-logo-bg);
+  color: var(--is-logo-fg);
+  font-size: 0.85rem;
+}
+.marca-chip is-icon { font-size: 1.25em; }
 
-/* Buscador del catálogo. */
-#buscador { display: flex; gap: .5rem; margin-bottom: 1rem; }
-#buscador input {
+#topbar nav {
+  display: flex;
+  gap: 0.35rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+#topbar nav::-webkit-scrollbar { display: none; }
+
+#topbar nav a {
+  padding: 0.35em 0.7em;
+  border-radius: var(--is-radius-sm);
+  color: var(--is-text-soft);
+  font-size: 0.94rem;
+  white-space: nowrap;
+  transition: background 0.18s cubic-bezier(0.16, 1, 0.3, 1), color 0.18s;
+}
+#topbar nav a:hover { background: var(--is-control-bg-hover); color: var(--is-text); }
+#topbar nav a[aria-current="page"] { background: var(--is-brand-soft); color: var(--is-brand-text); }
+
+.topbar-fin {
+  margin-inline-start: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* El selector de paleta es un control, no un botón de marca: se calma para
+   que el nombre del comercio siga siendo lo más fuerte de la cabecera. */
+is-palette-selector::part(trigger) {
+  background: transparent;
+  border: 1px solid var(--is-control-border);
+  color: var(--is-text-soft);
+  font-size: 0.88rem;
+  padding-inline: 0.6em;
+}
+is-palette-selector::part(trigger):hover {
+  background: var(--is-control-bg-hover);
+  color: var(--is-text);
+}
+
+#carrito-n:not(:empty) {
+  margin-inline-start: 0.2em;
+  font-variant-numeric: tabular-nums;
+  color: var(--is-brand-text);
+}
+
+/* ----------------------------------------------------------------- capa */
+
+main {
+  width: var(--msl-canal);
+  margin-inline: auto;
+  padding-block: clamp(1.25rem, 3.5vw, 2.5rem) clamp(2rem, 6vw, 4.5rem);
+}
+
+.seccion + .seccion { margin-block-start: clamp(3rem, 8vw, 6rem); }
+
+/* --------------------------------------------------------------- portada */
+
+.portada {
+  display: grid;
+  gap: clamp(1.25rem, 3vw, 2rem);
+  padding-block: clamp(0.5rem, 2vw, 1.5rem) clamp(1.5rem, 4vw, 2.5rem);
+}
+
+.portada h1 {
+  font-size: clamp(3.2rem, 12vw, 6rem);
+  letter-spacing: -0.05em;
+  max-width: 14ch;
+  margin-block-end: -0.15em;
+}
+
+.portada-lema {
+  font-size: clamp(1.15rem, 2.6vw, 1.6rem);
+  color: var(--is-text-soft);
+  max-width: 42ch;
+  margin: 0 0 clamp(0.5rem, 2vw, 1.5rem);
+  text-wrap: balance;
+}
+
+/* Departamentos: renglones del índice mayor, no una fila de tarjetas.
+   Cada uno es una línea con su cifra a la derecha, como la tabla de un
+   catálogo impreso; la marca sólo entra al recorrerlos. */
+.departamentos {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 2px solid var(--is-text);
+}
+.departamentos li + li { border-top: 1px solid var(--is-border-soft); }
+
+.departamento {
+  display: grid;
+  grid-template-columns: auto minmax(6rem, auto) 1fr auto;
+  align-items: baseline;
+  gap: clamp(0.6rem, 2vw, 1.4rem);
+  /* Padding fijo: el hover mueve con transform, que no provoca reflow. */
+  padding: clamp(0.75rem, 1.8vw, 1.1rem) 0.9rem;
+  color: var(--is-text);
+  transition: background 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.departamento:hover,
+.departamento:focus-visible { background: var(--is-brand-soft); transform: translateX(0.35rem); }
+.departamento is-icon { font-size: 1.15rem; color: var(--is-accent); align-self: center; }
+.departamento strong {
+  font-family: var(--msl-display);
+  font-size: clamp(1.15rem, 2.6vw, 1.5rem);
+  letter-spacing: -0.03em;
+  font-weight: 700;
+}
+.departamento-lema { font-size: 0.92rem; color: var(--is-text-dim); }
+.departamento-n {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.9rem;
+  color: var(--is-text-soft);
+}
+
+.ver-todo { margin-block-start: 0.9rem; }
+.ver-todo a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.92rem;
+  color: var(--is-brand-text);
+  border-bottom: 1px solid currentColor;
+  padding-block-end: 1px;
+}
+.ver-todo a:hover { color: var(--is-accent); }
+
+/* ---------------------------------------------------------------- índice */
+
+.indice-titulo {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding-block-end: 0.6rem;
+  border-bottom: 2px solid var(--is-text);
+  margin-block-end: 0.4rem;
+}
+.indice-titulo h2 { font-size: clamp(1.5rem, 4vw, 2.25rem); }
+.indice-titulo span {
+  margin-inline-start: auto;
+  font-size: 0.85rem;
+  color: var(--is-text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.indice { list-style: none; margin: 0; padding: 0; }
+
+.indice li { border-bottom: 1px solid var(--is-border-soft); }
+
+/* El renglón: nombre, guía de puntos, precio. La guía es la forma. */
+.renglon {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding: clamp(0.7rem, 1.6vw, 1rem) 0.8rem;
+  transition: background 0.18s cubic-bezier(0.16, 1, 0.3, 1), transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.renglon:hover,
+.renglon:focus-visible {
+  background: var(--is-brand-soft);
+  transform: translateX(0.3rem);
+}
+
+.renglon-nombre {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  min-width: 0;
+  font-family: var(--msl-display);
+  font-size: clamp(1.02rem, 2vw, 1.2rem);
+  font-weight: 560;
+  letter-spacing: -0.02em;
+}
+/* La línea de puntos crece hasta el precio, como en una carta impresa. */
+.renglon-nombre::after {
+  content: "";
   flex: 1;
-  padding: .55rem .8rem;
-  border: 1px solid #d1d5db;
-  border-radius: var(--msl-radio);
+  min-width: 1.5rem;
+  align-self: end;
+  margin-block-end: 0.3em;
+  border-bottom: 1px dotted var(--is-border);
 }
 
-/* Grid y tarjetas horneadas de producto. */
-.grid {
+.renglon-precio {
+  font-variant-numeric: tabular-nums;
+  font-weight: 640;
+  white-space: nowrap;
+}
+
+.renglon-nota {
+  grid-column: 1 / -1;
+  margin: 0;
+  max-width: var(--msl-medida);
+  font-size: 0.9rem;
+  color: var(--is-text-dim);
+}
+
+.renglon-opciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  grid-column: 1 / -1;
+  margin-block-start: 0.35rem;
+}
+.opcion-chip {
+  padding: 0.15em 0.55em;
+  border: 1px solid var(--is-border-soft);
+  border-radius: 999px;
+  font-size: 0.78rem;
+  color: var(--is-text-soft);
+  background: var(--is-bg-soft);
+}
+.opcion-chip[data-agotado] { color: var(--is-text-dim); text-decoration: line-through; }
+
+/* --------------------------------------------------------------- ficha */
+
+.producto {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: clamp(1.5rem, 4vw, 3rem);
+  grid-template-columns: minmax(0, 1fr);
+}
+@media (min-width: 60rem) {
+  .producto { grid-template-columns: minmax(0, 1.1fr) minmax(20rem, 0.9fr); align-items: start; }
+  .producto-media { position: sticky; top: 5rem; }
+}
+
+.producto h1 { font-size: clamp(2rem, 5vw, 3.2rem); }
+
+.miga {
+  font-size: 0.86rem;
+  color: var(--is-text-dim);
+  margin-block-end: 1rem;
+}
+.miga a:hover { color: var(--is-text); text-decoration: underline; }
+
+.producto-media img {
+  width: 100%;
+  /* Cuadrada: es la proporción en que se producen las fotos del catálogo,
+     así no se recorta la pieza ni sobra fondo. */
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: var(--is-radius);
+  border: 1px solid var(--is-border-soft);
+  background: var(--is-bg-soft);
+}
+
+/* Sin foto: la marca ocupa el hueco en vez de dejar un rectángulo gris. */
+.producto-media .sin-foto,
+.marca-hueco {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--is-radius);
+  background:
+    radial-gradient(120% 90% at 20% 0%, var(--is-brand-soft), transparent 60%),
+    var(--is-bg-soft);
+  border: 1px solid var(--is-border-soft);
+  color: var(--is-accent);
+  font-size: clamp(3rem, 12vw, 6rem);
+}
+
+.precio-grande {
+  font-family: var(--msl-display);
+  font-size: clamp(1.6rem, 4vw, 2.2rem);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+}
+
+.stock { font-size: 0.9rem; color: var(--is-text-soft); margin: 0.2rem 0 1.2rem; }
+.stock[data-agotado] { color: var(--is-danger-text, var(--is-color-danger)); }
+
+/* --------------------------------------------------------- formularios */
+
+form.personalizar { display: grid; gap: 1.1rem; margin-block-start: 1.5rem; }
+
+fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+legend {
+  padding: 0;
+  font-size: 0.82rem;
+  font-weight: 640;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--is-text-dim);
+}
+
+/* Opciones como fichas seleccionables: se toca, no se despliega. */
+.fichas { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+.ficha {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45em 0.9em;
+  border: 1px solid var(--is-control-border);
+  border-radius: var(--is-radius-sm);
+  background: var(--is-control-bg);
+  color: var(--is-text);
+  font-size: 0.94rem;
+  cursor: pointer;
+  transition: background 0.16s, border-color 0.16s, color 0.16s;
+}
+.ficha:hover { background: var(--is-control-bg-hover); }
+.ficha input { position: absolute; opacity: 0; pointer-events: none; }
+.ficha:has(input:checked) {
+  background: var(--is-color-brand-strong);
+  border-color: var(--is-color-brand-strong);
+  color: var(--is-on-brand, #fff);
+}
+.ficha:has(input:focus-visible) { outline: 2px solid var(--is-focus); outline-offset: 2px; }
+.ficha small { color: inherit; opacity: 0.8; font-variant-numeric: tabular-nums; }
+
+label.campo { display: grid; gap: 0.3rem; font-size: 0.9rem; color: var(--is-text-soft); }
+/* La cantidad es un número corto: no ocupa toda la fila. */
+label.campo:has(input[type="number"]) { inline-size: max-content; }
+label.campo input[type="number"] { inline-size: 7rem; }
+input[type="number"],
+input[type="text"],
+input[type="search"],
+textarea,
+select {
+  font: inherit;
+  color: var(--is-text);
+  background: var(--is-control-bg);
+  border: 1px solid var(--is-control-border);
+  border-radius: var(--is-radius-sm);
+  padding: 0.55em 0.75em;
+}
+input:focus-visible, textarea:focus-visible, select:focus-visible {
+  outline: 2px solid var(--is-focus);
+  outline-offset: 1px;
+}
+
+.total-linea {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
   gap: 1rem;
+  padding-block: 0.8rem;
+  border-block: 1px solid var(--is-border-soft);
+  font-variant-numeric: tabular-nums;
 }
-.tarjeta-producto {
-  border: 1px solid #e5e7eb;
-  border-radius: var(--msl-radio);
-  padding: .8rem;
+.total-linea strong { font-size: 1.25rem; font-family: var(--msl-display); }
+
+/* -------------------------------------------------------------- buscador */
+
+.barra-busqueda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+  margin-block-end: 1.5rem;
+}
+.barra-busqueda input[type="search"] { flex: 1 1 16rem; }
+
+.filtros { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.filtro {
+  padding: 0.35em 0.85em;
+  border: 1px solid var(--is-control-border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--is-text-soft);
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.16s, color 0.16s, border-color 0.16s;
+}
+.filtro:hover { background: var(--is-control-bg-hover); }
+.filtro[aria-pressed="true"] {
+  background: var(--is-brand-soft-active);
+  border-color: var(--is-accent);
+  color: var(--is-brand-text);
+}
+
+/* ---------------------------------------------------------------- estados */
+
+.vacio {
+  padding: clamp(2rem, 6vw, 4rem) 1rem;
+  text-align: center;
+  color: var(--is-text-dim);
+  border: 1px dashed var(--is-border);
+  border-radius: var(--is-radius);
+}
+.vacio is-icon { font-size: 2.5rem; color: var(--is-accent); }
+
+.msl-error {
+  color: var(--is-danger-text, var(--is-color-danger));
+  background: var(--is-danger-soft, transparent);
+  padding: 0.6em 0.9em;
+  border-radius: var(--is-radius-sm);
+}
+
+/* ----------------------------------------------------------------- pie */
+
+#pie {
+  margin-block-start: clamp(3rem, 8vw, 6rem);
+  border-top: 1px solid var(--is-border-soft);
+  background: var(--is-bg-soft);
+}
+.pie-capa {
+  width: var(--msl-canal);
+  margin-inline: auto;
+  padding-block: clamp(2rem, 5vw, 3.5rem);
   display: grid;
-  gap: .4rem;
-  background: #fff;
+  gap: 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
 }
-.tarjeta-enlace { color: inherit; text-decoration: none; display: grid; gap: .3rem; }
-.tarjeta-enlace img { width: 100%; border-radius: var(--msl-radio); }
-.tarjeta-enlace h2 { font-size: 1rem; margin: 0; }
-.tarjeta-cat { margin: 0; font-size: .8rem; opacity: .6; }
-
-/* Vista de producto individual. */
-.producto { max-width: 640px; margin: 0 auto; }
-.producto img { width: 100%; border-radius: var(--msl-radio); margin-bottom: .6rem; }
-.miga { font-size: .85rem; opacity: .7; margin-bottom: .8rem; }
-.miga a { color: var(--msl-primario); }
-.msl-precio { font-size: 1.4rem; color: var(--msl-primario); display: block; margin: .6rem 0; }
-.stock { font-size: .85rem; opacity: .7; }
-#personalizar { display: grid; gap: .8rem; }
-#personalizar label { display: grid; gap: .3rem; font-weight: 600; }
-#personalizar select, #personalizar input[type="number"] {
-  padding: .5rem;
-  border: 1px solid #d1d5db;
-  border-radius: var(--msl-radio);
+#pie h3 { font-size: 1rem; margin-block-end: 0.5rem; }
+#pie ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.3rem; }
+#pie a:hover { text-decoration: underline; }
+.pie-credito {
+  grid-column: 1 / -1;
+  padding-block-start: 1.5rem;
+  border-top: 1px solid var(--is-border-soft);
+  font-size: 0.84rem;
+  color: var(--is-text-dim);
 }
 
-/* Diálogo de sesión. */
+/* --------------------------------------------------------------- diálogo */
+
 dialog {
-  border: none;
-  border-radius: var(--msl-radio);
-  padding: 1.4rem;
-  box-shadow: 0 12px 40px #0004;
+  border: 1px solid var(--is-border);
+  border-radius: var(--is-radius);
+  background: var(--is-bg-elev);
+  color: var(--is-text);
+  padding: clamp(1.2rem, 3vw, 2rem);
+  box-shadow: var(--is-shadow);
+  max-width: min(28rem, 92vw);
 }
-dialog::backdrop { background: #0006; }
+dialog::backdrop { background: rgb(0 0 0 / 45%); backdrop-filter: blur(2px); }
 
-.msl-error { color: #b91c1c; padding: 1rem; }
-ul { padding-left: 1.2rem; }
-li { margin-bottom: .4rem; }
+/* ------------------------------------------------------------- movimiento */
+
+/* Un solo momento de movimiento: el índice entra por renglones al cargar. */
+@media (prefers-reduced-motion: no-preference) {
+  .indice li {
+    animation: entra-renglon 0.5s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+    animation-delay: calc(var(--i, 0) * 28ms);
+  }
+  @keyframes entra-renglon {
+    from { opacity: 0; transform: translateY(0.6rem); }
+  }
+}
+
+@media (max-width: 40rem) {
+  .departamento { grid-template-columns: auto 1fr auto; }
+  .departamento-lema { display: none; }
+  #topbar { flex-wrap: wrap; row-gap: 0.5rem; }
+  #topbar nav { order: 3; width: 100%; }
+  .renglon { grid-template-columns: 1fr; }
+  .renglon-nombre::after { display: none; }
+  .renglon-precio { font-size: 1.05rem; }
+}
