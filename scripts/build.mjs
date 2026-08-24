@@ -93,25 +93,24 @@ function resumenOpciones(p) {
 
 // ------------------------------------------------------------- cabeza
 
-// Arranque de tema sin destello: corre antes del primer pintado.
+// Arranque de tema: NO se reescribe aquí. Se toma tal cual de `msl-boot.js`
+// del kit y se inserta en línea, para que corra antes del primer pintado sin
+// costar una petición extra. Una sola definición para todo el ecosistema.
+let BOOT = null;
+try {
+  BOOT = await (await fetch(`${KIT}/msl-boot.js`)).text();
+  if (!BOOT.includes("data-theme")) throw new Error("contenido inesperado");
+} catch (e) {
+  console.error(`ERROR: no se pudo traer msl-boot.js del kit (${e.message}).`);
+  console.error("El sitio saldría con destello de tema. Reintenta el build.");
+  process.exit(1);
+}
+
+// Config que lee el boot: de dónde saca la hoja de la paleta del comercio.
 function bootTema() {
   const primera = PALETAS[0]?.value ?? "";
-  return `(function(){try{
-var h=document.documentElement;
-// Escotillas de prueba: ?cdn= usa un kit local, ?tema= y ?paleta= fijan la
-// identidad para poder auditar las combinaciones sin tocar localStorage.
-var Q=new URLSearchParams(location.search);
-if(Q.get('cdn')){window.MSL_CDN=Q.get('cdn');}
-if(Q.get('tema')){localStorage.setItem('msl.tema',Q.get('tema'));}
-if(Q.get('paleta')){localStorage.setItem('is-palette',Q.get('paleta'));}
-var t=localStorage.getItem('msl.tema');
-if(t!=='dark'&&t!=='light'){t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}
-h.classList.add(t==='dark'?'theme-dark':'theme-light');h.dataset.theme=t;
-var p=localStorage.getItem('is-palette')||${JSON.stringify(primera)};
-if(p){h.dataset.palette=p;
-var l=document.createElement('link');l.rel='stylesheet';l.href=${JSON.stringify(`${EMP.api}/tema/${EMP.app}/`)}+p+'.css';
-document.head.appendChild(l);}
-}catch(e){}})();`;
+  return `window.MSL_BOOT=${JSON.stringify({ api: EMP.api, app: EMP.app })};
+${BOOT}`;
 }
 
 function head({ titulo, descripcion, path, prefijo, imagen, jsonld, noindex }) {
@@ -164,8 +163,9 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
 function shell({ titulo, descripcion, path, prefijo, vista, contenido, jsonld, imagen, noindex, actual }) {
   const nav = DEPARTAMENTOS.map((d) =>
     `<a href="${prefijo}catalogo/#${esc(d.id)}"${actual === d.id ? ' aria-current="page"' : ""}>${esc(d.nombre)}</a>`).join("");
+  const paletaDefecto = PALETAS[0]?.value ?? "";
   return `<!doctype html>
-<html lang="${IDIOMA}">
+<html lang="${IDIOMA}"${paletaDefecto ? ` data-palette="${esc(paletaDefecto)}"` : ""}>
 ${head({ titulo, descripcion, path, prefijo, imagen, jsonld, noindex })}
 <body data-vista="${vista}">
 ${CONTRATO}

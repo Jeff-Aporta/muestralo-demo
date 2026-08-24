@@ -409,7 +409,7 @@ legend {
 .ficha:has(input:checked) {
   background: var(--is-color-brand-strong);
   border-color: var(--is-color-brand-strong);
-  color: var(--is-on-brand, #fff);
+  color: var(--is-on-brand);
 }
 .ficha:has(input:focus-visible) { outline: 2px solid var(--is-focus); outline-offset: 2px; }
 .ficha small { color: inherit; opacity: 0.8; font-variant-numeric: tabular-nums; }
@@ -531,7 +531,7 @@ dialog {
   box-shadow: var(--is-shadow);
   max-width: min(28rem, 92vw);
 }
-dialog::backdrop { background: rgb(0 0 0 / 45%); backdrop-filter: blur(2px); }
+dialog::backdrop { background: color-mix(in srgb, var(--is-text) 45%, transparent); backdrop-filter: blur(2px); }
 
 /* ------------------------------------------------------------- movimiento */
 

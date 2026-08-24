@@ -27,8 +27,10 @@ export function conectarShell(MslCliente) {
 export async function refrescarContador(MslCliente) {
   const n = document.getElementById("carrito-n");
   if (!MslCliente.token) { n.textContent = ""; return; }
-  const c = await MslCliente.carrito().catch(() => null);
-  n.textContent = c ? `(${c.items.length})` : "";
+  // El contador sale al instante del caché y se corrige si cambió.
+  await MslCliente.carrito.vivo(undefined, (c) => {
+    n.textContent = c ? `(${c.items.length})` : "";
+  }).catch(() => { n.textContent = ""; });
 }
 
 // Exige sesión: sin token abre el diálogo y devuelve false.
@@ -150,8 +152,9 @@ export function conectarPersonalizacion(MslCliente, dinero) {
 export async function vistaCarrito(MslCliente) {
   if (!exigirSesion(MslCliente)) return;
   const panel = document.querySelector("msl-carrito-panel");
+  // Caché primero: el carrito aparece sin esperar al servidor.
   const pintar = async () => {
-    panel.carrito = await MslCliente.carrito();
+    await MslCliente.carrito.vivo(undefined, (c) => { panel.carrito = c; });
     refrescarContador(MslCliente);
   };
   await pintar();
@@ -180,11 +183,12 @@ export async function vistaCarrito(MslCliente) {
 export async function vistaPedidos(MslCliente) {
   if (!exigirSesion(MslCliente)) return;
   const lista = document.getElementById("lista-pedidos");
-  const { results: pedidos } = await MslCliente.pedidos();
-  lista.innerHTML = pedidos.length
-    ? pedidos.map(() => `<msl-pedido-card></msl-pedido-card>`).join("")
-    : `<p>Sin pedidos todavía.</p>`;
-  lista.querySelectorAll("msl-pedido-card").forEach((el, i) => { el.pedido = pedidos[i]; });
+  await MslCliente.pedidos.vivo({}, ({ results: pedidos }) => {
+    lista.innerHTML = pedidos.length
+      ? pedidos.map(() => `<msl-pedido-card></msl-pedido-card>`).join("")
+      : `<p class="vacio">Sin pedidos todavía.</p>`;
+    lista.querySelectorAll("msl-pedido-card").forEach((el, i) => { el.pedido = pedidos[i]; });
+  });
 }
 
 export async function vistaPedido(MslCliente) {
