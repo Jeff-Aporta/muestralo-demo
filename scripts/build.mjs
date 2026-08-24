@@ -285,7 +285,9 @@ function pDinamicas() {
 // Panel de la empresa en su propio dominio: el admin llega por jsDelivr.
 // noindex y sin datos horneados: todo lo pide con la sesión del dueño.
 function pAdmin() {
-  const CDN_ADMIN = "https://cdn.jsdelivr.net/gh/Jeff-Aporta/muestralo-admin@main";
+  // GitHub Pages, no jsDelivr: jsDelivr cachea la resolución de @main hasta 12 h
+  // y un arreglo del panel tardaría en llegar a las empresas.
+  const CDN_ADMIN = "https://jeff-aporta.github.io/muestralo-admin";
   escribir("admin/index.html", `<!doctype html>
 <html lang="${IDIOMA}">
 <head>
