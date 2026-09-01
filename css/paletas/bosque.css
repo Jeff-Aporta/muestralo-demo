@@ -1,0 +1,56 @@
+[data-palette="bosque"] {
+  --is-color-brand-paler: color-mix(in srgb, #0f7a6a 12%, white);
+  --is-color-brand-pale: color-mix(in srgb, #0f7a6a 26%, white);
+  --is-color-brand: #0f7a6a;
+  --is-color-brand-strong: #0f7a6a;
+  --is-color-brand-stronger: color-mix(in srgb, #0f7a6a 86%, black);
+  --is-color-brand-strongest: color-mix(in srgb, #0f7a6a 74%, black);
+  --is-accent: #0f7a6a;
+  --is-accent-bg: color-mix(in srgb, #0f7a6a 12%, transparent);
+  --is-brand-soft: color-mix(in srgb, #0f7a6a 18%, transparent);
+  --is-brand-soft-active: color-mix(in srgb, #0f7a6a 28%, transparent);
+  --is-focus: #0f7a6a;
+  --is-logo-bg: #0f7a6a;
+  --is-logo-fg: #fff;
+  --is-logo-accent: #fff;
+  --is-radius: 0.9em;
+  --is-radius-sm: calc(0.9em / 2);
+}
+
+.theme-dark[data-palette="bosque"] {
+  --is-bosque-surface: oklch(from #0f7a6a l calc(c * 0.25) h);
+  --is-brand-text: #79dcc9;
+  --is-bg: color-mix(in srgb, var(--is-bosque-surface) 5%, #0a0e14);
+  --is-bg-soft: color-mix(in srgb, var(--is-bosque-surface) 6%, #121820);
+  --is-bg-elev: color-mix(in srgb, var(--is-bosque-surface) 7%, #18202a);
+  --is-border: color-mix(in srgb, var(--is-bosque-surface) 10%, #273040);
+  --is-border-soft: color-mix(in srgb, var(--is-bosque-surface) 8%, #1c2430);
+  --is-code-bg: color-mix(in srgb, var(--is-bosque-surface) 4.5%, #0d1218);
+  --is-control-bg: color-mix(in srgb, var(--is-bosque-surface) 5.5%, #1c2430);
+  --is-control-bg-hover: color-mix(in srgb, var(--is-bosque-surface) 7%, #283242);
+  --is-control-bg-active: color-mix(in srgb, var(--is-bosque-surface) 8%, #344054);
+  --is-control-border: color-mix(in srgb, var(--is-bosque-surface) 12%, #59636e);
+  --is-shadow: 0 1px 0 rgb(255 255 255 / 3%), 0 8px 24px color-mix(in srgb, var(--is-bosque-surface) 14%, rgb(0 0 0 / 25%));
+}
+
+.theme-light[data-palette="bosque"] {
+  --is-bosque-surface: oklch(from #0f7a6a l calc(c * 0.25) h);
+  --is-brand-text: color-mix(in srgb, #0f7a6a 82%, black);
+  --is-bg: #fff;
+  --is-bg-soft: color-mix(in srgb, var(--is-bosque-surface) 4%, #f6f8fa);
+  --is-bg-elev: #fff;
+  --is-border: color-mix(in srgb, var(--is-bosque-surface) 14%, #d6dae0);
+  --is-border-soft: color-mix(in srgb, var(--is-bosque-surface) 8%, #e5e7eb);
+  --is-code-bg: color-mix(in srgb, var(--is-bosque-surface) 3%, #f6f8fa);
+  --is-control-bg: color-mix(in srgb, var(--is-bosque-surface) 3%, #f1f3f5);
+  --is-control-bg-hover: color-mix(in srgb, var(--is-bosque-surface) 5%, #e9ecef);
+  --is-control-bg-active: color-mix(in srgb, var(--is-bosque-surface) 7%, #dee2e6);
+  --is-control-border: #80808050;
+  --is-text: #1b1f24;
+  --is-text-soft: #334155;
+  --is-text-dim: #64748b;
+  --is-shadow: 0 1px 0 rgb(0 0 0 / 4%), 0 8px 24px color-mix(in srgb, var(--is-bosque-surface) 8%, rgb(0 0 0 / 6%));
+  --is-b-required: #888;
+  --is-b-readonly: #8884;
+  --is-bg-readonly: #f9f9f9;
+}

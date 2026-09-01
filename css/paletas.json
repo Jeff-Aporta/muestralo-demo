@@ -1,0 +1,7 @@
+[
+  { "value": "indigo", "label": "Índigo", "accent": "#3b4ed8", "radius": "0.6em", "tint": 1, "brandText": "#a9b4ff" },
+  { "value": "cobre", "label": "Cobre", "accent": "#c05621", "radius": "0.25em", "tint": 1.2, "brandText": "#f2b183" },
+  { "value": "bosque", "label": "Bosque", "accent": "#0f7a6a", "radius": "0.9em", "tint": 1, "brandText": "#79dcc9" },
+  { "value": "ciruela", "label": "Ciruela", "accent": "#8b2e63", "radius": "1.2em", "tint": 1.1, "brandText": "#f0a6cd" },
+  { "value": "grafito", "label": "Grafito", "accent": "#556274", "radius": "0.2em", "tint": 0.6, "brandText": "#c3ccd8" }
+]

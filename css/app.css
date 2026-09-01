@@ -11,8 +11,6 @@
 :root {
   --msl-medida: 68ch;              /* medida de lectura cómoda */
   --msl-borde: var(--is-border);
-  --msl-paso: clamp(1rem, 2.5vw, 2rem);
-  --msl-canal: min(1180px, 100% - 2 * var(--msl-paso));
   --msl-display: var(--msl-font-display, var(--is-sans, system-ui, sans-serif));
   --msl-cuerpo: var(--is-sans, system-ui, sans-serif);
 }
@@ -54,91 +52,7 @@ h1, h2, h3 {
 
 p { margin: 0 0 1em; max-width: var(--msl-medida); }
 
-/* ------------------------------------------------------------- cabecera */
-
-#topbar {
-  position: sticky;
-  top: 0;
-  z-index: 20;
-  display: flex;
-  align-items: center;
-  gap: clamp(0.75rem, 2vw, 1.5rem);
-  width: var(--msl-canal);
-  margin-inline: auto;
-  padding-block: 0.7rem;
-  background: color-mix(in srgb, var(--is-bg) 88%, transparent);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--is-border-soft);
-}
-
-#marca {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.55rem;
-  font-family: var(--msl-display);
-  font-weight: 700;
-  font-size: 1.15rem;
-  letter-spacing: -0.03em;
-}
-
-/* El chip del logo usa los tokens de logo de la paleta: marca real, no adorno. */
-.marca-chip {
-  display: grid;
-  place-items: center;
-  inline-size: 2.1em;
-  block-size: 2.1em;
-  border-radius: var(--is-radius);
-  background: var(--is-logo-bg);
-  color: var(--is-logo-fg);
-  font-size: 0.85rem;
-}
-.marca-chip is-icon { font-size: 1.25em; }
-
-#topbar nav {
-  display: flex;
-  gap: 0.35rem;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-#topbar nav::-webkit-scrollbar { display: none; }
-
-#topbar nav a {
-  padding: 0.35em 0.7em;
-  border-radius: var(--is-radius-sm);
-  color: var(--is-text-soft);
-  font-size: 0.94rem;
-  white-space: nowrap;
-  transition: background 0.18s cubic-bezier(0.16, 1, 0.3, 1), color 0.18s;
-}
-#topbar nav a:hover { background: var(--is-control-bg-hover); color: var(--is-text); }
-#topbar nav a[aria-current="page"] { background: var(--is-brand-soft); color: var(--is-brand-text); }
-
-.topbar-fin {
-  margin-inline-start: auto;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-/* El selector de paleta es un control, no un botón de marca: se calma para
-   que el nombre del comercio siga siendo lo más fuerte de la cabecera. */
-is-palette-selector::part(trigger) {
-  background: transparent;
-  border: 1px solid var(--is-control-border);
-  color: var(--is-text-soft);
-  font-size: 0.88rem;
-  padding-inline: 0.6em;
-}
-is-palette-selector::part(trigger):hover {
-  background: var(--is-control-bg-hover);
-  color: var(--is-text);
-}
-
-#carrito-n:not(:empty) {
-  margin-inline-start: 0.2em;
-  font-variant-numeric: tabular-nums;
-  color: var(--is-brand-text);
-}
+/* Cabecera y pie: viven en msl-kit.css (msl-topbar / msl-pie). No duplicar. */
 
 /* ----------------------------------------------------------------- capa */
 
@@ -418,6 +332,7 @@ label.campo { display: grid; gap: 0.3rem; font-size: 0.9rem; color: var(--is-tex
 /* La cantidad es un número corto: no ocupa toda la fila. */
 label.campo:has(input[type="number"]) { inline-size: max-content; }
 label.campo input[type="number"] { inline-size: 7rem; }
+is-input.campo { inline-size: max-content; }
 input[type="number"],
 input[type="text"],
 input[type="search"],
@@ -455,7 +370,7 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
   align-items: center;
   margin-block-end: 1.5rem;
 }
-.barra-busqueda input[type="search"] { flex: 1 1 16rem; }
+.barra-busqueda is-input { flex: 1 1 16rem; }
 
 .filtros { display: flex; flex-wrap: wrap; gap: 0.4rem; }
 .filtro {
@@ -494,31 +409,7 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
   border-radius: var(--is-radius-sm);
 }
 
-/* ----------------------------------------------------------------- pie */
-
-#pie {
-  margin-block-start: clamp(3rem, 8vw, 6rem);
-  border-top: 1px solid var(--is-border-soft);
-  background: var(--is-bg-soft);
-}
-.pie-capa {
-  width: var(--msl-canal);
-  margin-inline: auto;
-  padding-block: clamp(2rem, 5vw, 3.5rem);
-  display: grid;
-  gap: 2rem;
-  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
-}
-#pie h3 { font-size: 1rem; margin-block-end: 0.5rem; }
-#pie ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.3rem; }
-#pie a:hover { text-decoration: underline; }
-.pie-credito {
-  grid-column: 1 / -1;
-  padding-block-start: 1.5rem;
-  border-top: 1px solid var(--is-border-soft);
-  font-size: 0.84rem;
-  color: var(--is-text-dim);
-}
+/* Pie: msl-pie en msl-kit.css. */
 
 /* --------------------------------------------------------------- diálogo */
 
@@ -535,6 +426,10 @@ dialog::backdrop { background: color-mix(in srgb, var(--is-text) 45%, transparen
 
 /* ------------------------------------------------------------- movimiento */
 
+/* Vitrina: layout en msl-kit.css. */
+
+body[data-vista="inicio"] main { padding-block-start: 0.35rem; }
+
 /* Un solo momento de movimiento: el índice entra por renglones al cargar. */
 @media (prefers-reduced-motion: no-preference) {
   .indice li {
@@ -549,8 +444,6 @@ dialog::backdrop { background: color-mix(in srgb, var(--is-text) 45%, transparen
 @media (max-width: 40rem) {
   .departamento { grid-template-columns: auto 1fr auto; }
   .departamento-lema { display: none; }
-  #topbar { flex-wrap: wrap; row-gap: 0.5rem; }
-  #topbar nav { order: 3; width: 100%; }
   .renglon { grid-template-columns: 1fr; }
   .renglon-nombre::after { display: none; }
   .renglon-precio { font-size: 1.05rem; }

@@ -9,6 +9,9 @@
 import { readFile, writeFile, mkdir, cp, rm } from "node:fs/promises";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { htmlVitrina } from "./vitrina.mjs";
+import { paraSelector, leerPaletasLocal, hornearPaletas, textoBoot } from "../../../app/molde/scripts/paletas.mjs";
+import { htmlTopbar, htmlPie, htmlDialogoSesion, htmlPaginaAdmin } from "../../../app/molde/scripts/marco.mjs";
 
 const EMP = JSON.parse(await readFile(new URL("../empresa.json", import.meta.url), "utf8"));
 const RAIZ = fileURLToPath(new URL("../", import.meta.url));
@@ -45,7 +48,9 @@ try {
 
 const NOMBRE = cfg.nombre || EMP.nombre || EMP.app;
 const META = cfg.meta || {};
-const PALETAS = cfg.paletas || [];
+const PALETAS_LOCAL = await leerPaletasLocal(RAIZ);
+const PALETAS_SRC = (cfg.paletas || []).length ? cfg.paletas : PALETAS_LOCAL;
+const PALETAS = paraSelector(PALETAS_SRC);
 const MONEDA = "COP";
 const ICONO_MARCA = META.icono || "mdi:storefront-outline";
 const FUENTES = META.fuentes || null;
@@ -98,18 +103,17 @@ function resumenOpciones(p) {
 // costar una petición extra. Una sola definición para todo el ecosistema.
 let BOOT = null;
 try {
-  BOOT = await (await fetch(`${KIT}/msl-boot.js`)).text();
-  if (!BOOT.includes("data-theme")) throw new Error("contenido inesperado");
+  BOOT = await textoBoot(RAIZ, KIT);
 } catch (e) {
   console.error(`ERROR: no se pudo traer msl-boot.js del kit (${e.message}).`);
   console.error("El sitio saldría con destello de tema. Reintenta el build.");
   process.exit(1);
 }
 
-// Config que lee el boot: de dónde saca la hoja de la paleta del comercio.
-function bootTema() {
-  const primera = PALETAS[0]?.value ?? "";
-  return `window.MSL_BOOT=${JSON.stringify({ api: EMP.api, app: EMP.app })};
+// Config que lee el boot: hoja local combinada, sin pedir la API al pintar.
+function bootTema(prefijo) {
+  return `window.MSL_BOOT=${JSON.stringify({ api: EMP.api, app: EMP.app, paletaCss: true, paletaHref: `${prefijo}css/paletas.css` })};
+window.MSL_BOOT=window.MSL_BOOT;
 ${BOOT}`;
 }
 
@@ -142,9 +146,11 @@ ${imagen ? `<meta property="og:image" content="${esc(imagen)}">\n<meta name="twi
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 ${fuentesLink}
 <link rel="stylesheet" href="${KIT_IS}/is-base.min.css">
+<link rel="stylesheet" href="${prefijo}cdn/msl-kit.css" data-msl-kit>
+<link rel="stylesheet" href="${prefijo}css/paletas.css">
 <link rel="stylesheet" href="${prefijo}css/tema.css">
 <link rel="stylesheet" href="${prefijo}css/app.css">
-<script>${bootTema()}</script>
+<script>${bootTema(prefijo)}</script>
 ${jsonld ? `<script type="application/ld+json">${JSON.stringify(jsonld)}</script>` : ""}
 </head>`;
 }
@@ -161,48 +167,22 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
 
 // window.MSL queda horneado: el runtime no necesita pedir /api/config.
 function shell({ titulo, descripcion, path, prefijo, vista, contenido, jsonld, imagen, noindex, actual }) {
-  const nav = DEPARTAMENTOS.map((d) =>
-    `<a href="${prefijo}catalogo/#${esc(d.id)}"${actual === d.id ? ' aria-current="page"' : ""}>${esc(d.nombre)}</a>`).join("");
   const paletaDefecto = PALETAS[0]?.value ?? "";
+  const chrome = {
+    esc, nombre: NOMBRE, icono: ICONO_MARCA, prefijo: prefijo || "./",
+    departamentos: DEPARTAMENTOS, actual, meta: META, vista, paletas: PALETAS,
+  };
   return `<!doctype html>
 <html lang="${IDIOMA}"${paletaDefecto ? ` data-palette="${esc(paletaDefecto)}"` : ""}>
 ${head({ titulo, descripcion, path, prefijo, imagen, jsonld, noindex })}
 <body data-vista="${vista}">
 ${CONTRATO}
-<header id="topbar">
-  <a id="marca" href="${prefijo || "./"}">
-    <span class="marca-chip"><is-icon icon="${esc(ICONO_MARCA)}"></is-icon></span>
-    ${esc(NOMBRE)}
-  </a>
-  <nav aria-label="Departamentos">${nav}</nav>
-  <div class="topbar-fin">
-    <div id="controles-tema"></div>
-    <a href="${prefijo}pedidos/" id="enlace-pedidos" hidden title="Mis pedidos"><is-icon icon="mdi:receipt-text-outline"></is-icon></a>
-    <a href="${prefijo}carrito/" title="Carrito"><is-icon icon="mdi:basket-outline"></is-icon><span id="carrito-n"></span></a>
-    <is-button id="btn-sesion" variant="text" color="neutral" title="Iniciar sesión"><is-icon icon="mdi:account-outline"></is-icon></is-button>
-  </div>
-</header>
+${htmlTopbar(chrome)}
 <main id="vista">
 ${contenido}
 </main>
-<footer id="pie">
-  <div class="pie-capa">
-    <div>
-      <h3><a href="${prefijo || "./"}">${esc(NOMBRE)}</a></h3>
-      <p>${esc(META.descripcion || META.eslogan || "")}</p>
-    </div>
-    <div>
-      <h3>Departamentos</h3>
-      <ul>${DEPARTAMENTOS.map((d) => `<li><a href="${prefijo}catalogo/#${esc(d.id)}">${esc(d.nombre)}</a></li>`).join("")}</ul>
-    </div>
-    <div>
-      <h3>Dónde estamos</h3>
-      <ul>${(META.sedes || []).map((s) => `<li>${esc(s.nombre)} — ${esc(s.direccion || "")}</li>`).join("") || "<li>Solo en línea</li>"}</ul>
-    </div>
-    <p class="pie-credito">${esc(NOMBRE)} · catálogo con <a href="https://github.com/Jeff-Aporta/muestralo-app" rel="noopener">Muéstralo</a></p>
-  </div>
-</footer>
-<dialog id="dlg-sesion"><msl-auth-form></msl-auth-form></dialog>
+${htmlPie(chrome)}
+${htmlDialogoSesion()}
 <script>
   window.MSL = ${JSON.stringify({
     app: EMP.app, api: EMP.api, dominio: DOMINIO,
@@ -271,35 +251,16 @@ function pInicio() {
       : {}),
     department: DEPARTAMENTOS.map((d) => ({ "@type": "Store", name: d.nombre, url: `${DOMINIO}/catalogo/#${d.id}` })),
   };
-  const destacados = DEPARTAMENTOS.map((d) => {
-    const todos = delDepto(d);
-    const items = todos.slice(0, 4);
-    return seccionDepto(d, "", items, {
-      total: todos.length,
-      verTodo: todos.length > items.length ? `catalogo/#${d.id}` : null,
-    });
-  }).join("");
-
+  const hero = productos.find((p) => (p.imagenes || [])[0]) || productos[0];
   escribir("index.html", shell({
-    titulo: `${NOMBRE} — ${META.eslogan || "Catálogo"}`,
-    descripcion: META.descripcion || META.eslogan || `Catálogo de ${NOMBRE}`,
+    titulo: `${NOMBRE} — ${META.eslogan || "Tienda"}`,
+    descripcion: META.descripcion || META.eslogan || `Tienda de ${NOMBRE}`,
     path: "/", prefijo: "", vista: "inicio", jsonld,
-    contenido: `<section class="portada">
-  <h1>${esc(NOMBRE)}</h1>
-  <p class="portada-lema">${esc(META.eslogan || "")}</p>
-  <ol class="departamentos" aria-label="Departamentos del catálogo">
-    ${DEPARTAMENTOS.map((d) => `<li><a class="departamento" href="catalogo/#${esc(d.id)}">
-      <is-icon icon="${esc(d.icono || "mdi:tag-outline")}"></is-icon>
-      <strong>${esc(d.nombre)}</strong>
-      <span class="departamento-lema">${esc(d.lema || "")}</span>
-      <span class="departamento-n">${delDepto(d).length}</span>
-    </a></li>`).join("")}
-  </ol>
-</section>
-${destacados}
-<section class="seccion">
-  <p><a href="catalogo/"><is-button>Ver el catálogo completo</is-button></a></p>
-</section>`,
+    imagen: hero ? (hero.imagenes || [])[0] : undefined,
+    contenido: htmlVitrina({
+      nombre: NOMBRE, meta: META, departamentos: DEPARTAMENTOS,
+      productos, cfg, esc, dinero, urlProducto, delDepto,
+    }),
   }));
 }
 
@@ -319,17 +280,43 @@ function pCatalogo() {
     titulo: `Catálogo — ${NOMBRE}`,
     descripcion: `Las ${productos.length} referencias de ${NOMBRE}, por departamento, con precio y opciones.`,
     path: "/catalogo/", prefijo: "../", vista: "catalogo", jsonld,
-    contenido: `<div class="indice-titulo"><h1>Catálogo</h1><span>${productos.length} referencias</span></div>
+    contenido: htmlIndice({ h1: "Catálogo", prefijo: "../" }),
+  }));
+}
+
+function htmlIndice({ h1, prefijo, items = productos, depts = DEPARTAMENTOS }) {
+  const secciones = depts.map((d) => seccionDepto(d, prefijo, delDepto(d).filter((p) => items.includes(p)))).join("");
+  const sueltos = items.filter((p) => !depts.some((d) => slug(d.nombre || d.id) === slug(p.categoria)));
+  return `<div class="indice-titulo"><h1>${esc(h1)}</h1><span>${items.length} referencias</span></div>
 <form class="barra-busqueda" id="buscador" role="search">
-  <input type="search" name="q" placeholder="Buscar en el catálogo…" aria-label="Buscar en el catálogo">
+  <is-input type="search" name="q" placeholder="Buscar…" aria-label="Buscar"></is-input>
   <div class="filtros" id="filtros-depto">
     <button type="button" class="filtro" data-depto="" aria-pressed="true">Todo</button>
-    ${DEPARTAMENTOS.map((d) => `<button type="button" class="filtro" data-depto="${esc(d.id)}" aria-pressed="false">${esc(d.nombre)}</button>`).join("")}
+    ${depts.map((d) => `<button type="button" class="filtro" data-depto="${esc(d.id)}" aria-pressed="false">${esc(d.nombre)}</button>`).join("")}
   </div>
 </form>
 <p class="vacio" id="sin-resultados" hidden><is-icon icon="mdi:magnify-close"></is-icon><br>Nada coincide con esa búsqueda.</p>
 ${secciones}
-${sinDepto.length ? seccionDepto({ id: "otros", nombre: "Otros", lema: "" }, "../", sinDepto) : ""}`,
+${sueltos.length ? seccionDepto({ id: "otros", nombre: "Otros", lema: "" }, prefijo, sueltos) : ""}`;
+}
+
+function pMenu() {
+  escribir("menu/index.html", shell({
+    titulo: `Menú — ${NOMBRE}`,
+    descripcion: `Menú de ${NOMBRE}: mismas referencias del catálogo, por departamento.`,
+    path: "/menu/", prefijo: "../", vista: "menu",
+    contenido: htmlIndice({ h1: "Menú", prefijo: "../" }),
+  }));
+}
+
+function pPromociones() {
+  const items = productos.filter((p) => /combo|promo|oferta|pack|maxi|ahorro/i.test(`${p.nombre} ${p.descripcion || ""} ${p.categoria || ""}`));
+  const lista = items.length ? items : productos.slice(0, 8);
+  escribir("promociones/index.html", shell({
+    titulo: `Promociones — ${NOMBRE}`,
+    descripcion: `Combos y destacados de ${NOMBRE}.`,
+    path: "/promociones/", prefijo: "../", vista: "promociones",
+    contenido: htmlIndice({ h1: "Promociones", prefijo: "../", items: lista, depts: DEPARTAMENTOS.filter((d) => lista.some((p) => slug(p.categoria) === slug(d.nombre || d.id))) }),
   }));
 }
 
@@ -408,9 +395,7 @@ function pProducto(p) {
     <form class="personalizar" id="personalizar">
       ${grupos}
       ${adicionales}
-      <label class="campo">Cantidad
-        <input name="cantidad" type="number" min="1" value="1" inputmode="numeric">
-      </label>
+      <is-input class="campo" name="cantidad" type="number" min="1" value="1" label="Cantidad"></is-input>
       <div class="total-linea"><span>Total</span><strong id="total-linea">${dinero(p.precio, p.moneda)}</strong></div>
       <is-button type="submit"${agotado ? " disabled" : ""}>
         <is-icon icon="mdi:basket-plus-outline"></is-icon> Agregar al carrito
@@ -466,35 +451,16 @@ function pDinamicas() {
 // Panel de la empresa en su propio dominio: el admin llega por GitHub Pages.
 // jsDelivr cachea la resolución de @main hasta 12 h y un arreglo tardaría.
 function pAdmin() {
-  const CDN_ADMIN = "https://jeff-aporta.github.io/muestralo-admin";
-  escribir("admin/index.html", `<!doctype html>
-<html lang="${IDIOMA}">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Admin — ${esc(NOMBRE)}</title>
-<meta name="robots" content="noindex,nofollow">
-<link rel="preconnect" href="${esc(EMP.api)}" crossorigin>
-<link rel="stylesheet" href="${KIT_IS}/is-base.min.css">
-<link rel="stylesheet" href="${CDN_ADMIN}/css/admin.css">
-</head>
-<body>
-<div id="raiz"></div>
-<script>
-  // El tenant y la API quedan fijados: la dueña solo pone sus credenciales.
-  localStorage.setItem("msl.app", ${JSON.stringify(EMP.app)});
-  localStorage.setItem("msl.api", ${JSON.stringify(EMP.api)});
-</script>
-<script type="module" src="${CDN_ADMIN}/js/admin.js"></script>
-</body>
-</html>
-`);
+  escribir("admin/index.html", htmlPaginaAdmin({
+    esc, idioma: IDIOMA, nombre: NOMBRE, api: EMP.api, app: EMP.app, kitIs: KIT_IS,
+    adminLocal: "../../../../admin",
+  }));
 }
 
 // ------------------------------------------------------------- índices
 
 function pSitemap() {
-  const urls = ["/", "/catalogo/", "/sedes/", ...productos.map((p) => urlProducto(p))];
+  const urls = ["/", "/menu/", "/promociones/", "/catalogo/", "/sedes/", ...productos.map((p) => urlProducto(p))];
   escribir("sitemap.xml", `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${urls.map((u) => `  <url><loc>${DOMINIO}${u}</loc></url>`).join("\n")}
@@ -518,6 +484,8 @@ Sitemap: ${DOMINIO}/sitemap.xml
 
 pInicio();
 pCatalogo();
+pMenu();
+pPromociones();
 for (const p of productos) pProducto(p);
 pSedes();
 pDinamicas();
@@ -532,7 +500,14 @@ for (const [ruta, contenido] of archivos) {
   await writeFile(ruta, contenido);
 }
 await writeFile(join(DIST, "css", "tema.css"), temaCss());
+await hornearPaletas(RAIZ, DIST, PALETAS_SRC);
 await cp(join(RAIZ, "css", "app.css"), join(DIST, "css", "app.css"));
 await cp(join(RAIZ, "js"), join(DIST, "js"), { recursive: true });
+for (const kitLocal of [join(RAIZ, "..", "cdn"), join(RAIZ, "..", "..", "app", "cdn")]) {
+  try {
+    await cp(kitLocal, join(DIST, "cdn"), { recursive: true });
+    break;
+  } catch { /* siguiente candidato */ }
+}
 
 console.log(`Sitio generado en dist/: ${archivos.length + 1} archivos (${productos.length} productos, ${DEPARTAMENTOS.length} departamentos) para "${NOMBRE}" [${EMP.app}].`);
